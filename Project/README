@@ -1,0 +1,36 @@
+
+bluetooth_peripheral.py starts the Bluetooth module and lets the device act as a client or server.
+The device acts as a connectable server by default, with no role assigned, and automatically transitions to server mode when
+a device tries to connect to it. Sending and receiving data works the same way independently of the mode. A device can only
+be in server or client mode, not both. 
+
+You can run "sudo python3 bluetooth_peripheral.py" to launch this program without the NFC, and you can 
+use the shell to connect to another device running the same program. Use the commands in order to connect,
+communicate, and then disconnect. 
+
+The shell commands are as follows:
+
+    "status" - shows information about the current connection status of the device
+    "addr XX:XX:XX:XX:XX:XX" - set the remote address. You can find this by using "status" on the other device
+    "connect" - connect to the address set in the above commands as a client. The other device will automatically accept as a server
+    "send <msg>" - send a message to the connected device. This calls rfcomm_send_msg() and works the same way in either mode.
+    "disconnect" - disconnect from the connected device, this also works in either mode. Both devices will return to their default state
+
+Alternatively, I was able to connect to the RPI using my phone by connecting in settings, and then using a Serial Bluetooth Analyser app.
+
+When implementing the game, use rfcomm_send_msg(msg) to send data from one device to the other, and modify rfcomm_msg_received(msg)
+to handle incoming data from the other device. You can call rfcomm_disconnect() at the end of the game to automtically disconnect
+the devices. You hopefully should not need to spend a lot of time reading the Bluetooth code to get things working.
+
+nfc-dep-initiator.c alternates the NFC transceiver between reader and tag mode, and attempts to read from a nearby tag when in reader mode.
+It sends any read addresses to bt_addr_pipe by default. You should not need to touch this file, but if you do, bluetooth_init.sh rebuilds the
+program automatically when you run it, so no need to recompile yourself. You can use "cat bt_addr_pipe" to see the information that is sent, 
+and you can also modify bluetooth_init.sh where the program is called to see logging output if you need. 
+
+use "source bluetooth_init.sh" to launch the entire application. This script initializes all of the environment variables and configures the 
+processes to speak to each other. Running this command on both devices allows you to move the transceivers near each other to automatically
+connect the devices over Bluetooth. Any issues connecting can be solved by restarting the programs. If a problem persists, you can solve it
+by doing a full restart, but make sure you unplug the power so that the Bluetooth adapter can reset its RAM buffers, or you might have the
+same problem again. 
+
+Using ctrl+C to stop bluetooth_init.sh also stops the nfc-dep-initiator process. 
